@@ -1,7 +1,13 @@
 package il.ac.tau.cs.software1.bigram;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Scanner;
 
 public class BigramModel {
     public static final int MAX_VOCABULARY_SIZE = 14500;
@@ -109,9 +115,35 @@ public class BigramModel {
      * @post: mBigramCounts = prev(mBigramCounts)
      */
     public int[][] buildCountsArray(String fileName, String[] vocabulary) throws IOException { // Question 2
-        // TODO: implement
-        return null;
+        // takes a file name and a vocabulary, and returns a two-dimensional array with the bigram counts of the file
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
+        int[][] counts = new int[vocabulary.length][vocabulary.length];
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            String[] tokens = line.split(" ");
+            int prevIndex = ELEMENT_NOT_FOUND;
+            for (int i = 0; i < tokens.length; i++){
+                String token = tokens[i];
+                if (token.isEmpty()){
+                    continue;
+                }
+                String normalized = normalizeWord(token);
+                int currIndex = ELEMENT_NOT_FOUND;
+                if (normalized != null){
+                    currIndex = findIndex(vocabulary, normalized);
+                }
+                if (prevIndex != ELEMENT_NOT_FOUND && currIndex != ELEMENT_NOT_FOUND){
+                    counts[prevIndex][currIndex]++;
+                }
+            prevIndex = currIndex;
+            }
+        }
+        bufferedReader.close();
+        return counts;
     }
+
+
+
 
     /*
      * @pre: the method initModel was called (the language model is initialized)
