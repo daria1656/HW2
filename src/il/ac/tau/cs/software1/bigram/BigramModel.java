@@ -79,9 +79,30 @@ public class BigramModel {
      * @post: mBigramCounts = prev(mBigramCounts)
      */
     public String[] buildVocabularyIndex(String fileName) throws IOException { // Question 1
-        // TODO: implement
-        return null;
-    }
+        //takes a file name and returns the vocabulary of that file: an array of all the different legal words in it, in their normalized form.
+        String [] arrayWords = new String[MAX_VOCABULARY_SIZE];
+        int count = 0;
+        BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        Scanner scanner = new Scanner(reader);
+        while (scanner.hasNext() && count < MAX_VOCABULARY_SIZE) {
+            String token = scanner.next();
+            String normalized = normalizeWord(token);
+            if (normalized != null) {
+                int index = findIndex(arrayWords, normalized);
+                if (index == ELEMENT_NOT_FOUND) {
+                    arrayWords[count] = normalized;
+                    count++;
+                }
+            }
+        }
+        scanner.close();
+        reader.close();
+        String [] finalArray = new String[count];
+        for (int i = 0; i < count; i++) {
+            finalArray[i] = arrayWords[i];
+        }
+        return finalArray; 
+        }
 
     /*
      * @post: mVocabulary = prev(mVocabulary)
