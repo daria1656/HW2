@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -150,14 +151,61 @@ public class BigramModel {
      * @pre: fileName is a legal file path
      */
     public void saveModel(String fileName) throws IOException { // Question 3
-        // TODO: implement
+        //  takes a file name without a suffix, and saves the model into two text files: the vocabulary into fileName.voc, and the counts into fileName.counts
+        String vocFileName = fileName + VOC_FILE_SUFFIX;
+        PrintWriter vocWriter = new PrintWriter(new BufferedWriter(new FileWriter(vocFileName)));
+        vocWriter.println(mVocabulary.length + " words");
+        for(int i=0; i<mVocabulary.length; i++){
+            vocWriter.println(i + "," + mVocabulary[i]);
+        }
+        vocWriter.close();
+        String countsFileName = fileName + COUNTS_FILE_SUFFIX;
+        PrintWriter countsWriter = new PrintWriter(new BufferedWriter(new FileWriter(countsFileName)));
+        for(int i = 0; i < mBigramCounts.length; i++){
+            for(int j = 0; j < mBigramCounts[i].length; j++){
+                if(mBigramCounts[i][j] > 0){
+                    countsWriter.println(i + "," + j + ":" + mBigramCounts[i][j]);
+                }
+            }
+            }
+        countsWriter.close();
     }
 
     /*
      * @pre: fileName is a legal file path
      */
     public void loadModel(String fileName) throws IOException { // Question 4
-        // TODO: implement
+        // takes a file name without a suffix, reads the two files fileName.voc and fileName.counts, and loads the model that they describe into the fieldsmVocabulary and mBigramCounts.
+        String vocFileName = fileName + VOC_FILE_SUFFIX;
+        BufferedReader vocReader = new BufferedReader(new FileReader(vocFileName));
+        String firstLine = vocReader.readLine();
+        String[] firstLineParts = firstLine.split(" ");
+        int vocabSize = Integer.parseInt(firstLineParts[0]);
+        mVocabulary = new String[vocabSize];
+        for (int i = 0; i < vocabSize; i++) {
+            String line = vocReader.readLine();
+            String[] parts = line.split(","); 
+            int index = Integer.parseInt(parts[0]);
+            String word = parts[1];
+            mVocabulary[index] = word;
+        }
+        vocReader.close();
+        String countsFileName = fileName + COUNTS_FILE_SUFFIX;
+        BufferedReader countsReader = new BufferedReader(new FileReader(countsFileName));
+        mBigramCounts = new int[vocabSize][vocabSize];
+        String line;
+        while ((line = countsReader.readLine()) != null) {
+            if (line.isEmpty()) {
+                continue;
+            }
+            String[] mainParts = line.split(":");
+            int count = Integer.parseInt(mainParts[1]);
+            String[] indicesParts = mainParts[0].split(",");
+            int i1 = Integer.parseInt(indicesParts[0]);
+            int i2 = Integer.parseInt(indicesParts[1]);
+            mBigramCounts[i1][i2] = count;
+        }
+        countsReader.close();
     }
 
     /*
@@ -167,8 +215,26 @@ public class BigramModel {
      * @post: if sentence is probable, according to the model, $ret = true, else, $ret = false
      */
     public boolean isLegalSentence(String sentence) { // Question 5
-        // TODO: implement
-        return false;
+        // takes a sentence and checks whether our language model allows it. A sentence is legal if every pair of adjacent words in it appeared at least once in the text that the model was built from
+        if (sentence.isEmpty()) {
+            return true;
+        }
+        String[] words = sentence.split(" ");
+        int prevIndex = findIndex(mVocabulary, words[0]);
+        if (prevIndex == ELEMENT_NOT_FOUND) {
+            return false;
+        }
+        for (int i = 1; i < words.length; i++) {
+            int currIndex = findIndex(mVocabulary, words[i]);
+            if (currIndex == ELEMENT_NOT_FOUND) {
+                return false;
+            }
+            if (mBigramCounts[prevIndex][currIndex] == 0) {
+                return false;
+            }
+            prevIndex = currIndex;
+        }
+        return true;
     }
 
     ///////////////////////////////////////////////////////////////////////////
