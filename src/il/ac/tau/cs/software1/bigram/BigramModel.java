@@ -90,26 +90,32 @@ public class BigramModel {
         String [] arrayWords = new String[MAX_VOCABULARY_SIZE];
         int count = 0;
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        Scanner scanner = new Scanner(reader);
-        while (scanner.hasNext() && count < MAX_VOCABULARY_SIZE) {
-            String token = scanner.next();
-            String normalized = normalizeWord(token);
-            if (normalized != null) {
-                int index = findIndex(arrayWords, normalized);
-                if (index == ELEMENT_NOT_FOUND) {
-                    arrayWords[count] = normalized;
-                    count++;
+        String line;
+        while ((line = reader.readLine()) != null && count < MAX_VOCABULARY_SIZE) {
+            line = line.trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+            String[] tokens = line.split("\\s+");
+            for (int i = 0; i < tokens.length && count < MAX_VOCABULARY_SIZE; i++) {
+                String normalized = normalizeWord(tokens[i]);
+                if (normalized != null) {
+                    int index = findIndex(arrayWords, normalized);
+                    if (index == ELEMENT_NOT_FOUND) {
+                        arrayWords[count] = normalized;
+                        count++;
+                    }
                 }
             }
         }
-        scanner.close();
         reader.close();
-        String [] finalArray = new String[count];
+
+        String[] finalArray = new String[count];
         for (int i = 0; i < count; i++) {
             finalArray[i] = arrayWords[i];
         }
-        return finalArray; 
-        }
+        return finalArray;
+    }
 
     /*
      * @post: mVocabulary = prev(mVocabulary)
